@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class CartController extends Controller
+{
+    public function index(Request $request)
+    {
+        $cart = Cart::where('user_id', $request->user()->id)
+                    ->with('items.product')
+                    ->first();
+
+        if (!$cart) {
+            return response()->json([
+                'id' => null,
+                'items' => [],
+                'total' => 0,
+            ]);
+        }
+
+        return response()->json([
+            'id' => $cart->id,
+            'items' => $cart->items,
+            'total' => $cart->items->sum(fn($item) => $item->price * $item->quantity),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'variations' => 'nullable|array',
+        ]);
+
+        $product = Product::findOrFail($validated['product_id']);
+        $user = $request->user();
+
+        $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+
+        $cartItem = CartItem::updateOrCreate(
+            [
+                'cart_id' => $cart->id,
+                'product_id' => $validated['product_id'],
+            ],
+            [
+                'quantity' => CartItem::where('cart_id', $cart->id)
+                                      ->where('product_id', $validated['product_id'])
+                                      ->first()
+                                      ?->quantity + $validated['quantity'] ?? $validated['quantity'],
+                'price' => $product->price,
+                'variations' => $validated['variations'] ?? [],
+            ]
+        );
+
+        return response()->json($cartItem, 201);
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'quantity' => 'required|integer|min:0',
+        ]);
+
+        $cartItem = CartItem::findOrFail($id);
+
+        if ($validated['quantity'] == 0) {
+            $cartItem->delete();
+            return response()->json(['message' => 'Item removed from cart']);
+        }
+
+        $cartItem->update(['quantity' => $validated['quantity']]);
+
+        return response()->json($cartItem);
+    }
+
+    public function destroy(string $id)
+    {
+        $cartItem = CartItem::findOrFail($id);
+        $cartItem->delete();
+
+        return response()->json(['message' => 'Item removed from cart']);
+    }
+}

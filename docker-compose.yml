@@ -1,0 +1,174 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: shopping-simulator-db
+    environment:
+      POSTGRES_USER: shopping
+      POSTGRES_PASSWORD: shopping_password
+      POSTGRES_DB: shopping_simulator
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopping-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: shopping-simulator-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopping-network
+
+  # PostgreSQL Exporter (Metrics)
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: shopping-simulator-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://shopping:shopping_password@postgres:5432/shopping_simulator?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - shopping-network
+
+  # Redis Exporter (Metrics)
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: shopping-simulator-redis-exporter
+    environment:
+      REDIS_ADDR: redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - shopping-network
+
+  # Laravel API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shopping-simulator-api
+    environment:
+      APP_NAME: ShoppingSimulator
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_KEY: base64:AqOEj3ib5/1PvnxA5EUClR+bbFgHdrZp9qh3sGQayMY=
+      APP_URL: http://localhost:8000
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: shopping_simulator
+      DB_USERNAME: shopping
+      DB_PASSWORD: shopping_password
+
+      REDIS_HOST: redis
+      REDIS_PASSWORD: null
+      REDIS_PORT: 6379
+
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: cookie
+
+      PROMETHEUS_ENABLED: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./laravel:/app
+      - ./laravel-stubs:/app/laravel-stubs
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "if [ ! -f /app/artisan ]; then
+               echo 'Creating fresh Laravel 11 installation...';
+               cd /app && composer create-project laravel/laravel . --no-interaction --no-scripts;
+             fi &&
+             rm -f /app/.env &&
+             composer install --no-interaction --no-scripts &&
+             npm install &&
+             echo 'Laravel ready!' &&
+             php artisan serve --host=0.0.0.0"
+    networks:
+      - shopping-network
+
+  # Node.js Frontend (Vue 3)
+  frontend:
+    image: node:20-alpine
+    container_name: shopping-simulator-frontend
+    working_dir: /app
+    environment:
+      VITE_API_URL: http://localhost:8000/api
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:5173"
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - api
+    networks:
+      - shopping-network
+
+  # Prometheus (Metrics Collection)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: shopping-simulator-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - shopping-network
+
+  # Grafana (Dashboards & Visualization)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: shopping-simulator-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - shopping-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  shopping-network:
+    driver: bridge

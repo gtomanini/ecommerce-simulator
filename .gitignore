@@ -1,0 +1,114 @@
+# ==========================================
+# Laravel Backend
+# ==========================================
+/laravel/vendor/
+/laravel/bootstrap/cache/
+/laravel/storage/
+/laravel/node_modules/
+/laravel/.env
+/laravel/.env.backup
+/laravel/.env.production
+/laravel/.env.*.backup
+/laravel/.phpunit.cache
+/laravel/phpunit.xml
+
+# Laravel IDE Helpers
+/laravel/.phpstorm.meta.php
+/laravel/_ide_helper.php
+/laravel/_ide_helper_models.php
+
+# ==========================================
+# Frontend (Vue 3 + Node)
+# ==========================================
+/node_modules/
+/dist/
+/public/build/
+/.vite/
+.env.local
+.env.*.local
+
+# ==========================================
+# Environment & Secrets
+# ==========================================
+.env
+.env.backup
+.env.production
+.env.local
+
+# ==========================================
+# IDEs & Editors
+# ==========================================
+/.idea/
+/.vscode/
+/*.swp
+/*.swo
+*~
+.DS_Store
+.project
+.classpath
+*.sublime-project
+*.sublime-workspace
+.history
+
+# ==========================================
+# OS Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==========================================
+# Logs & Temp Files
+# ==========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+*.pid
+*.seed
+
+# ==========================================
+# Build & Dist Outputs
+# ==========================================
+/dist/
+/build/
+/public/build/
+/.next/
+/out/
+
+# ==========================================
+# Package Manager Lockfiles (Optional)
+# Uncomment if you want to commit these
+# ==========================================
+# package-lock.json
+# composer.lock
+
+# ==========================================
+# Docker
+# ==========================================
+.dockerignore
+docker-compose.override.yml
+
+# ==========================================
+# Testing
+# ==========================================
+/coverage/
+.nyc_output/
+*.lcov
+
+# ==========================================
+# Misc
+# ==========================================
+.cache/
+.cache
+*.cache
+*.bak
+*.tmp
+.env*.local
+.env*.vault
