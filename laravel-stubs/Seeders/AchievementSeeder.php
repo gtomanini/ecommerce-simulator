@@ -11,74 +11,74 @@ class AchievementSeeder extends Seeder
     {
         $achievements = [
             [
-                'name' => '🎯 Primeira Compra',
-                'description' => 'Parabéns! Você fez sua primeira compra',
+                'name' => '🎯 First Purchase',
+                'description' => 'Congratulations! You made your first purchase',
                 'icon' => '🎯',
                 'condition' => 'first_purchase'
             ],
             [
-                'name' => '💰 Gastador de Ouro',
-                'description' => 'Parabéns! Você gastou R$ 100 em compras',
+                'name' => '💰 Gold Spender',
+                'description' => 'Congratulations! You spent $100 on purchases',
                 'icon' => '💰',
                 'condition' => 'spent_100'
             ],
             [
-                'name' => '💎 Gastador de Diamante',
-                'description' => 'Parabéns! Você gastou R$ 500 em compras',
+                'name' => '💎 Diamond Spender',
+                'description' => 'Congratulations! You spent $500 on purchases',
                 'icon' => '💎',
                 'condition' => 'spent_500'
             ],
             [
-                'name' => '👑 Colecionador',
-                'description' => 'Parabéns! Você comprou produtos de 5 categorias diferentes',
+                'name' => '👑 Collector',
+                'description' => 'Congratulations! You bought products from 5 different categories',
                 'icon' => '👑',
                 'condition' => 'categories_5'
             ],
             [
-                'name' => '🛍️ Chegou ao Limite',
-                'description' => 'Uau! Você adicionou 10 ou mais itens ao carrinho',
+                'name' => '🛍️ Cart Limit Reached',
+                'description' => 'Wow! You added 10 or more items to your cart',
                 'icon' => '🛍️',
                 'condition' => 'cart_items_10'
             ],
             [
-                'name' => '⚡ Luz Rápida',
-                'description' => 'Você completou uma compra em menos de 2 minutos',
+                'name' => '⚡ Lightning Fast',
+                'description' => 'You completed a purchase in less than 2 minutes',
                 'icon' => '⚡',
                 'condition' => 'quick_purchase'
             ],
             [
-                'name' => '🌟 Estrela em Ascensão',
-                'description' => 'Você desbloqueou 5 conquistas diferentes',
+                'name' => '🌟 Rising Star',
+                'description' => 'You unlocked 5 different achievements',
                 'icon' => '🌟',
                 'condition' => 'achievements_5'
             ],
             [
-                'name' => '🎁 Presenteador',
-                'description' => 'Você comprou para mais de uma pessoa',
+                'name' => '🎁 Gift Giver',
+                'description' => 'You made purchases for more than one person',
                 'icon' => '🎁',
                 'condition' => 'multiple_buyers'
             ],
             [
-                'name' => '📱 Madrugador',
-                'description' => 'Você fez uma compra entre 00:00 e 06:00',
+                'name' => '📱 Night Owl',
+                'description' => 'You made a purchase between 00:00 and 06:00',
                 'icon' => '📱',
                 'condition' => 'midnight_shopping'
             ],
             [
-                'name' => '🏆 Campeão de Vendas',
-                'description' => 'Parabéns! Você completou 10 compras',
+                'name' => '🏆 Sales Champion',
+                'description' => 'Congratulations! You completed 10 purchases',
                 'icon' => '🏆',
                 'condition' => 'orders_10'
             ],
             [
-                'name' => '🚀 Variedade é Vida',
-                'description' => 'Você comprou produtos de todas as 9 categorias',
+                'name' => '🚀 Variety is Life',
+                'description' => 'You bought products from all 9 categories',
                 'icon' => '🚀',
                 'condition' => 'all_categories'
             ],
             [
-                'name' => '💸 Milionário Fictício',
-                'description' => 'Você gastou R$ 1000 em compras simuladas',
+                'name' => '💸 Fictional Millionaire',
+                'description' => 'You spent $1000 on simulated purchases',
                 'icon' => '💸',
                 'condition' => 'spent_1000'
             ],

@@ -11,26 +11,26 @@ class ShippingMethodSeeder extends Seeder
     {
         $methods = [
             [
-                'name' => 'Entrega Econômica',
-                'description' => 'Entrega padrão em 7-10 dias úteis',
+                'name' => 'Standard Shipping',
+                'description' => 'Standard delivery in 7-10 business days',
                 'base_cost' => 15.00,
                 'estimated_days' => 10
             ],
             [
-                'name' => 'Entrega Rápida',
-                'description' => 'Entrega em 3-5 dias úteis',
+                'name' => 'Fast Shipping',
+                'description' => 'Delivery in 3-5 business days',
                 'base_cost' => 35.00,
                 'estimated_days' => 5
             ],
             [
-                'name' => 'Entrega Express',
-                'description' => 'Entrega em 1-2 dias úteis',
+                'name' => 'Express Shipping',
+                'description' => 'Delivery in 1-2 business days',
                 'base_cost' => 59.90,
                 'estimated_days' => 2
             ],
             [
-                'name' => 'Retirada na Loja',
-                'description' => 'Retire seu pedido na loja (São Paulo)',
+                'name' => 'Store Pickup',
+                'description' => 'Pick up your order at the store (São Paulo)',
                 'base_cost' => 0.00,
                 'estimated_days' => 1
             ],
