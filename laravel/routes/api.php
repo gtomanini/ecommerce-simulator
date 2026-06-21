@@ -9,10 +9,14 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\AchievementController;
+use App\Http\Controllers\MetricsController;
 
 Route::get('/health', function () {
     return ['status' => 'ok'];
 });
+
+// Metrics endpoint for Prometheus (public, no auth required)
+Route::get('/metrics', [MetricsController::class, 'metrics']);
 
 // Public auth routes
 Route::post('/auth/register', [AuthController::class, 'register']);

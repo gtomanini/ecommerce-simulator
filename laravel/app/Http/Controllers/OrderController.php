@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -38,7 +39,7 @@ class OrderController extends Controller
             'delivery_address' => 'required|string',
             'delivery_city' => 'required|string',
             'delivery_state' => 'required|string',
-            'delivery_zip_code' => 'required|string',
+            'delivery_zip' => 'required|string',
         ]);
 
         $user = $request->user();
@@ -66,7 +67,7 @@ class OrderController extends Controller
             'delivery_address' => $validated['delivery_address'],
             'delivery_city' => $validated['delivery_city'],
             'delivery_state' => $validated['delivery_state'],
-            'delivery_zip_code' => $validated['delivery_zip_code'],
+            'delivery_zip' => $validated['delivery_zip'],
             'shipping_method_id' => $validated['shipping_method_id'],
             'estimated_delivery' => now()->addDays($shippingMethod->estimated_days),
         ]);
@@ -82,7 +83,7 @@ class OrderController extends Controller
         }
 
         // Simulate payment
-        $order->payments()->create([
+        $order->payment()->create([
             'method' => 'credit_card',
             'amount' => $total,
             'status' => 'completed',
@@ -91,6 +92,22 @@ class OrderController extends Controller
 
         // Clear cart
         $cart->items()->delete();
+
+        AuditService::logAction(
+            $user,
+            'order_created',
+            "Created order {$order->order_number} with {$order->items()->count()} items for R$ {$order->total}",
+            'Order',
+            $order->id,
+            [
+                'order_number' => $order->order_number,
+                'subtotal' => $order->subtotal,
+                'shipping_cost' => $order->shipping_cost,
+                'total' => $order->total,
+                'items_count' => $order->items()->count(),
+                'shipping_method' => $order->shippingMethod->name,
+            ]
+        );
 
         return response()->json($order->load('items.product', 'shippingMethod'), 201);
     }

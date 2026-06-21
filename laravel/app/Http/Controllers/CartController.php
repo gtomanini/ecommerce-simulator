@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
@@ -58,6 +59,15 @@ class CartController extends Controller
             ]
         );
 
+        AuditService::logAction(
+            $user,
+            'cart_item_added',
+            "Added {$validated['quantity']} x '{$product->name}' to cart",
+            'CartItem',
+            $cartItem->id,
+            ['product_id' => $product->id, 'quantity' => $validated['quantity'], 'price' => $product->price]
+        );
+
         return response()->json($cartItem, 201);
     }
 
@@ -79,9 +89,19 @@ class CartController extends Controller
         return response()->json($cartItem);
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $cartItem = CartItem::findOrFail($id);
+        $user = $request->user();
+
+        AuditService::logAction(
+            $user,
+            'cart_item_removed',
+            "Removed '{$cartItem->product->name}' from cart",
+            'CartItem',
+            $cartItem->id
+        );
+
         $cartItem->delete();
 
         return response()->json(['message' => 'Item removed from cart']);
