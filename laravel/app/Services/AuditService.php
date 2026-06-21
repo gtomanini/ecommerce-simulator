@@ -72,7 +72,7 @@ class AuditService
         $content = file_exists($file) ? file_get_contents($file) : '';
 
         if ($label) {
-            $pattern = "/^{$metric}\{[^}]*label=\"{$label}\"[^}]*\}\s+(\d+(?:\.\d+)?)/m";
+            $pattern = "/^{$metric}\{[^}]*action=\"{$label}\"[^}]*\}\s+(\d+(?:\.\d+)?)/m";
             if (preg_match($pattern, $content, $matches)) {
                 $newValue = (int) $matches[1] + 1;
                 $content = preg_replace($pattern, "{$metric}{action=\"{$label}\"} {$newValue}", $content);

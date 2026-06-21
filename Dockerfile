@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     && docker-php-ext-install pdo pdo_pgsql \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
