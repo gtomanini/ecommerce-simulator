@@ -22,20 +22,28 @@ curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER
 newgrp docker   # or log out/in
 
-# Clone the repo (public, so no auth needed for pulls)
-git clone https://github.com/gtomanini/ecommerce-simulator.git ~/ecommerce-simulator
+# Create the app directory (the workflow copies compose files here via SCP,
+# so the repo does NOT need to be cloned on the VM).
+mkdir -p ~/ecommerce-simulator
 cd ~/ecommerce-simulator
 
-# Create the production env file (NOT in git)
-cp .env.prod.example .env.prod
-nano .env.prod
+# Create the production env file (NOT in git). Generate an APP_KEY first:
+docker run --rm php:8.3-cli php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+
+cat > .env.prod <<'EOF'
+APP_KEY=base64:PASTE_THE_GENERATED_KEY_HERE
+APP_URL=http://<PUBLIC_IP>
+DB_DATABASE=shopping_simulator
+DB_USERNAME=shopping
+DB_PASSWORD=change_this_password
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=change_this_password
+EOF
+nano .env.prod   # paste the APP_KEY, set DB_PASSWORD and APP_URL
 ```
 
-In `.env.prod` set:
-- `APP_KEY` — generate one:
-  `docker run --rm php:8.3-cli php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"`
-- `DB_PASSWORD` — a strong password
-- `APP_URL` — `http://<PUBLIC_IP>` (or your domain)
+> The repo can stay **private** — the VM never clones it. CI copies
+> `docker-compose.prod.yml` over SCP and pulls the images from GHCR.
 
 ---
 

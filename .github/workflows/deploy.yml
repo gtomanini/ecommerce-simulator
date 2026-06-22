@@ -65,6 +65,19 @@ jobs:
       contents: read
       packages: read
     steps:
+      - uses: actions/checkout@v4
+
+      # Ship the compose/config files to the VM (no git needed on the host,
+      # so the repo can stay private). App code travels inside the images.
+      - name: Copy compose files to the VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.prod.yml,prometheus.prod.yml"
+          target: "ecommerce-simulator"
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
@@ -79,7 +92,6 @@ jobs:
             set -e
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             cd ~/ecommerce-simulator
-            git pull --ff-only
             docker compose --env-file .env.prod -f docker-compose.prod.yml pull
             docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --no-build
             docker logout ghcr.io
