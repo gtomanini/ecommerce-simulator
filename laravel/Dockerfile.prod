@@ -21,6 +21,17 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 # Copy the application and finish autoloader generation.
 COPY . /app
+
+# bootstrap/cache and storage are excluded from the build context (so stale
+# dev manifests never leak in). Recreate them writable before Laravel runs
+# package discovery / config caching.
+RUN mkdir -p bootstrap/cache \
+        storage/framework/cache/data \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+    && chmod -R 775 bootstrap/cache storage
+
 RUN composer dump-autoload --optimize --no-dev
 
 COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint
