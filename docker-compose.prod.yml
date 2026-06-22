@@ -1,0 +1,120 @@
+# Production stack tuned for a 1 core / 1GB instance.
+#
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+#
+# Core services (postgres + api + frontend) stay well under 1GB.
+# Prometheus + Grafana are opt-in via the "monitoring" profile:
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml --profile monitoring up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-shopping}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-shopping_password}
+      POSTGRES_DB: ${DB_DATABASE:-shopping_simulator}
+    # Trim memory usage for a small instance.
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c effective_cache_size=128MB
+      -c max_connections=30
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-shopping}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  api:
+    build:
+      context: ./laravel
+      dockerfile: Dockerfile.prod
+    environment:
+      APP_NAME: ShoppingSimulator
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL:-http://localhost}
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-shopping_simulator}
+      DB_USERNAME: ${DB_USERNAME:-shopping}
+      DB_PASSWORD: ${DB_PASSWORD:-shopping_password}
+
+      # No Redis: cache lives in the database, sessions in cookies.
+      CACHE_STORE: database
+      SESSION_DRIVER: cookie
+      QUEUE_CONNECTION: sync
+      LOG_CHANNEL: stderr
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 320m
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+      args:
+        VITE_API_URL: /api
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    mem_limit: 64m
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  # --- Optional monitoring (profile: monitoring) ---
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["monitoring"]
+    volumes:
+      - ./prometheus.prod.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+    mem_limit: 192m
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  grafana:
+    image: grafana/grafana:latest
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    mem_limit: 192m
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  shopping-network:
+    driver: bridge

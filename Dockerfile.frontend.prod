@@ -1,0 +1,23 @@
+# Build the Vue SPA, then serve the static output with nginx.
+# The Node toolchain only runs in the build stage; the final image is a
+# tiny nginx (~10MB RAM) with no Node process at runtime.
+
+# --- Build stage ---
+FROM node:20-alpine AS build
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+# Same-origin API: the SPA calls /api and nginx proxies it to the API.
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build
+
+# --- Serve stage ---
+FROM nginx:1.27-alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/public/build /usr/share/nginx/html
+EXPOSE 80

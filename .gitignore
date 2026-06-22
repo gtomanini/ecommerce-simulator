@@ -33,6 +33,7 @@
 .env.backup
 .env.production
 .env.local
+.env.prod
 
 # ==========================================
 # IDEs & Editors
@@ -91,7 +92,6 @@ lerna-debug.log*
 # ==========================================
 # Docker
 # ==========================================
-.dockerignore
 docker-compose.override.yml
 
 # ==========================================

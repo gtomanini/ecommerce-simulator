@@ -1,0 +1,12 @@
+# API context (laravel/) production build
+.git
+vendor
+node_modules
+.env
+.env.testing
+.env.*.backup
+coverage
+storage/logs/*.log
+storage/prometheus_metrics.txt
+.phpunit.cache
+tests

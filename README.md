@@ -382,6 +382,43 @@ docker-compose exec api php artisan migrate:fresh --seed
 
 ---
 
+## 🚀 Production Deployment (fits 1 core / 1 GB)
+
+The default `docker-compose.yml` is a development stack (Vite dev server,
+Redis, Prometheus, Grafana) and is too heavy for a 1 GB instance. For
+deployment there is a trimmed production stack in `docker-compose.prod.yml`:
+
+- **Frontend** built to static files and served by nginx (no Node at runtime)
+- **API** as a self-contained image (deps installed at build, config/routes cached)
+- **PostgreSQL** with reduced `shared_buffers`
+- **No Redis** — cache uses the database, sessions use cookies
+- **Prometheus + Grafana** are optional (behind the `monitoring` profile)
+- Per-container `mem_limit`s; the core stack idles at **~80 MB total**
+
+nginx serves the SPA and proxies `/api` to the API container (same origin,
+so there is no CORS to configure).
+
+### Steps
+
+```bash
+# 1. Configure environment
+cp .env.prod.example .env.prod
+# Edit .env.prod: set a real APP_KEY and DB_PASSWORD
+#   docker run --rm php:8.3-cli php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+
+# 2. Build and start (frontend on port 80; migrations + seed run automatically)
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+
+# 3. (optional) Start monitoring too
+docker compose --env-file .env.prod -f docker-compose.prod.yml --profile monitoring up -d
+```
+
+> ⚠️ The image **build** (npm + composer) needs more RAM than the runtime and
+> may OOM on a 1 GB box. Build on a machine with more memory (or CI) and push
+> the images, or temporarily add ~2 GB of swap on the instance for the build.
+
+---
+
 ## 🤝 Contributing
 
 This is an open educational project! Feel free to:

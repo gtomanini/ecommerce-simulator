@@ -1,0 +1,9 @@
+# Root context (frontend production build)
+.git
+node_modules
+public/build
+laravel/vendor
+laravel/node_modules
+coverage
+*.md
+docker-compose*.yml

@@ -1,0 +1,31 @@
+# Production image for the Laravel API.
+# Self-contained: code is copied in (no bind mounts) and dependencies are
+# installed at build time, so the running container stays lean (~60MB RAM).
+FROM php:8.3-cli
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    postgresql-client \
+    unzip \
+    git \
+    && docker-php-ext-install pdo pdo_pgsql \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+
+# Install PHP dependencies first (better layer caching).
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --no-autoloader
+
+# Copy the application and finish autoloader generation.
+COPY . /app
+RUN composer dump-autoload --optimize --no-dev
+
+COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
+
+EXPOSE 8000
+
+CMD ["/usr/local/bin/entrypoint"]
