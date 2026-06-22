@@ -38,22 +38,39 @@
         <div class="form-group">
           <label>Card Number</label>
           <input
-            v-model="form.card_number"
+            :value="form.card_number"
+            @input="onCardNumberInput"
             type="text"
             inputmode="numeric"
             maxlength="19"
-            placeholder="4111111111111111"
+            placeholder="1234 5678 9012 3456"
             required
           />
         </div>
         <div class="card-row">
           <div class="form-group">
             <label>Expiry (MM/YY)</label>
-            <input v-model="form.card_expiry" type="text" placeholder="12/30" maxlength="5" required />
+            <input
+              :value="form.card_expiry"
+              @input="onExpiryInput"
+              type="text"
+              inputmode="numeric"
+              placeholder="MM/YY"
+              maxlength="5"
+              required
+            />
           </div>
           <div class="form-group">
             <label>CVV</label>
-            <input v-model="form.card_cvv" type="text" inputmode="numeric" maxlength="4" placeholder="123" required />
+            <input
+              :value="form.card_cvv"
+              @input="onCvvInput"
+              type="text"
+              inputmode="numeric"
+              maxlength="4"
+              placeholder="123"
+              required
+            />
           </div>
         </div>
       </template>
@@ -98,6 +115,26 @@ const form = reactive({
 const isCard = computed(() => form.method === 'credit_card' || form.method === 'debit_card')
 
 const formatPrice = (value) => Number(value).toFixed(2)
+
+// Card number: keep digits only, group in blocks of 4 -> "1234 5678 9012 3456"
+const onCardNumberInput = (e) => {
+  const digits = e.target.value.replace(/\D/g, '').slice(0, 16)
+  form.card_number = digits.replace(/(\d{4})(?=\d)/g, '$1 ')
+  e.target.value = form.card_number
+}
+
+// Expiry: keep digits only, auto-insert slash -> "MM/YY"
+const onExpiryInput = (e) => {
+  const digits = e.target.value.replace(/\D/g, '').slice(0, 4)
+  form.card_expiry = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits
+  e.target.value = form.card_expiry
+}
+
+// CVV: digits only
+const onCvvInput = (e) => {
+  form.card_cvv = e.target.value.replace(/\D/g, '').slice(0, 4)
+  e.target.value = form.card_cvv
+}
 
 onMounted(async () => {
   order.value = await ordersStore.fetchOrder(route.params.id)
