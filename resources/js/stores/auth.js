@@ -70,6 +70,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateProfile = async (profile) => {
+    loading.value = true
+    try {
+      const { put } = useApi()
+      const response = await put('/profile', profile)
+      user.value = response.data
+      success('Profile updated successfully!')
+      return true
+    } catch (err) {
+      error(err.response?.data?.message || 'Failed to update profile')
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   if (token.value) {
     fetchUser()
   }
@@ -83,5 +99,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     fetchUser,
+    updateProfile,
   }
 })

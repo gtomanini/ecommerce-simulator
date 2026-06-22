@@ -12,6 +12,7 @@
           <template v-if="isLoggedIn">
             <router-link to="/orders" class="nav-link">Orders</router-link>
             <router-link to="/achievements" class="nav-link">Achievements</router-link>
+            <router-link to="/profile" class="nav-link">Profile</router-link>
           </template>
         </nav>
 
@@ -22,7 +23,7 @@
           </router-link>
 
           <template v-if="isLoggedIn">
-            <span class="user-name">{{ currentUser?.name }}</span>
+            <router-link to="/profile" class="user-name">{{ currentUser?.name }}</router-link>
             <button @click="handleLogout" class="logout-btn">Logout</button>
           </template>
           <template v-else>

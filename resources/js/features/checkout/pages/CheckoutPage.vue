@@ -28,7 +28,7 @@
       </div>
       <div class="form-group">
         <label>Zip Code</label>
-        <input v-model="form.delivery_zip_code" type="text" required />
+        <input v-model="form.delivery_zip" type="text" required />
       </div>
       <div class="form-group">
         <label>Shipping Method</label>
@@ -48,11 +48,13 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useOrdersStore } from '@/stores/orders'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
 import { useApi } from '@/composables/useApi'
 import { useRouter } from 'vue-router'
 
 const ordersStore = useOrdersStore()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 const { get } = useApi()
 const router = useRouter()
 const shippingMethods = ref([])
@@ -64,11 +66,27 @@ const form = reactive({
   delivery_address: '',
   delivery_city: '',
   delivery_state: '',
-  delivery_zip_code: '',
+  delivery_zip: '',
   shipping_method_id: '',
 })
 
+const prefillFromUser = () => {
+  const user = authStore.user
+  if (!user) return
+  form.buyer_name = user.name || ''
+  form.buyer_email = user.email || ''
+  form.buyer_phone = user.phone || ''
+  form.delivery_address = user.address || ''
+  form.delivery_city = user.city || ''
+  form.delivery_state = user.state || ''
+  form.delivery_zip = user.zip || ''
+}
+
 onMounted(async () => {
+  // Make sure we have the latest user profile, then pre-fill the form.
+  await authStore.fetchUser()
+  prefillFromUser()
+
   const response = await get('/shipping-methods')
   shippingMethods.value = response.data
 })

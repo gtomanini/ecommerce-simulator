@@ -98,6 +98,17 @@ class OrderTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'order_created']);
         // cart cleared
         $this->assertDatabaseMissing('cart_items', ['cart_id' => $cart->id]);
+
+        // delivery details are saved back onto the user's profile
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'John Doe',
+            'phone' => '11999999999',
+            'address' => 'Main Street 123',
+            'city' => 'Sao Paulo',
+            'state' => 'SP',
+            'zip' => '01310100',
+        ]);
     }
 
     public function test_cannot_create_order_with_empty_cart(): void

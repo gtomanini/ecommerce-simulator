@@ -49,6 +49,17 @@ class OrderController extends Controller
             return response()->json(['message' => 'Cart is empty'], 400);
         }
 
+        // Remember the delivery details on the user's profile so the
+        // checkout form comes pre-filled on their next purchase.
+        $user->update([
+            'name' => $validated['buyer_name'],
+            'phone' => $validated['buyer_phone'],
+            'address' => $validated['delivery_address'],
+            'city' => $validated['delivery_city'],
+            'state' => $validated['delivery_state'],
+            'zip' => $validated['delivery_zip'],
+        ]);
+
         $subtotal = $cart->items->sum(fn($item) => $item->price * $item->quantity);
         $shippingMethod = \App\Models\ShippingMethod::findOrFail($validated['shipping_method_id']);
         $shippingCost = $shippingMethod->base_cost;

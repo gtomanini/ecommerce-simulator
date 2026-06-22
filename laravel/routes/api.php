@@ -10,6 +10,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\MetricsController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/health', function () {
     return ['status' => 'ok'];
@@ -32,6 +33,9 @@ Route::get('/shipping-methods', [ShippingMethodController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
+
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 
     Route::apiResource('cart', CartController::class);
     Route::apiResource('orders', OrderController::class);
