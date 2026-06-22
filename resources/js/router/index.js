@@ -45,6 +45,12 @@ const routes = [
     meta: { layout: 'main', requiresAuth: true },
   },
   {
+    path: '/orders/:id/payment',
+    name: 'payment',
+    component: () => import('@/features/checkout/pages/PaymentPage.vue'),
+    meta: { layout: 'main', requiresAuth: true },
+  },
+  {
     path: '/orders/:id',
     name: 'order-detail',
     component: () => import('@/features/orders/pages/OrderDetailPage.vue'),

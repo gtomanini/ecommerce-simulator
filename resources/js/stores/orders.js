@@ -57,6 +57,21 @@ export const useOrdersStore = defineStore('orders', () => {
     }
   }
 
+  const payOrder = async (orderId, paymentData) => {
+    loading.value = true
+    try {
+      const response = await post(`/orders/${orderId}/payment`, paymentData)
+      currentOrder.value = response.data
+      success('Payment completed successfully!')
+      return response.data
+    } catch (err) {
+      error(err.response?.data?.message || 'Payment failed')
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   const nextPage = () => {
     if (currentPage.value * 10 < total.value) {
       fetchOrders(currentPage.value + 1)
@@ -79,6 +94,7 @@ export const useOrdersStore = defineStore('orders', () => {
     fetchOrders,
     fetchOrder,
     createOrder,
+    payOrder,
     nextPage,
     prevPage,
   }

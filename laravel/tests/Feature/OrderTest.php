@@ -93,8 +93,9 @@ class OrderTest extends TestCase
 
         // subtotal 200 + shipping 15 = 215
         $this->assertEquals(215, $response->json('total'));
-        $this->assertDatabaseHas('orders', ['user_id' => $user->id, 'total' => 215]);
-        $this->assertDatabaseHas('payments', ['status' => 'completed']);
+        $this->assertDatabaseHas('orders', ['user_id' => $user->id, 'total' => 215, 'status' => 'pending']);
+        // payment is NOT created at order time; it happens on the payment screen
+        $this->assertDatabaseMissing('payments', ['order_id' => $response->json('id')]);
         $this->assertDatabaseHas('audit_logs', ['action' => 'order_created']);
         // cart cleared
         $this->assertDatabaseMissing('cart_items', ['cart_id' => $cart->id]);

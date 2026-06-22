@@ -93,13 +93,8 @@ class OrderController extends Controller
             ]);
         }
 
-        // Simulate payment
-        $order->payment()->create([
-            'method' => 'credit_card',
-            'amount' => $total,
-            'status' => 'completed',
-            'transaction_id' => 'TXN-' . date('YmdHis') . '-' . uniqid(),
-        ]);
+        // The order starts as 'pending' and awaits payment on the
+        // dedicated payment screen (see PaymentController).
 
         // Clear cart
         $cart->items()->delete();

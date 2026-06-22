@@ -11,6 +11,7 @@ use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/health', function () {
     return ['status' => 'ok'];
@@ -39,5 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('cart', CartController::class);
     Route::apiResource('orders', OrderController::class);
+    Route::post('/orders/{order}/payment', [PaymentController::class, 'store']);
     Route::get('/achievements', [AchievementController::class, 'index']);
 });

@@ -39,7 +39,7 @@
           </option>
         </select>
       </div>
-      <button type="submit" class="submit-btn">Place Order</button>
+      <button type="submit" class="submit-btn">Continue to Payment</button>
     </form>
   </div>
 </template>
@@ -92,9 +92,11 @@ onMounted(async () => {
 })
 
 const handleCheckout = async () => {
-  await ordersStore.createOrder(form)
+  const order = await ordersStore.createOrder(form)
+  if (!order) return
   cartStore.clearCart()
-  router.push('/orders')
+  // Proceed to the payment screen for the newly created order.
+  router.push(`/orders/${order.id}/payment`)
 }
 </script>
 
