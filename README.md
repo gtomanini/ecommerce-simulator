@@ -2,7 +2,7 @@
 
 A shopping simulation platform where users experience real e-commerce without paying anything. Full-stack educational project with Laravel, Vue 3, PostgreSQL and Docker.
 
-**Status:** ✅ Functional MVP - Ready for Development
+**Status:** ✅ Production-ready — auto-deployed to Oracle Cloud via GitHub Actions
 
 ---
 
@@ -16,6 +16,8 @@ A shopping simulation platform where users experience real e-commerce without pa
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 
@@ -25,21 +27,23 @@ A shopping simulation platform where users experience real e-commerce without pa
 
 ### Implemented Features ✅
 
-- 🛍️ **Product Catalog** - 99+ products with categories, images and variations
+- 🛍️ **Product Catalog** - 99 products with categories, images and variations (search, filter, sort, pagination)
 - 🛒 **Shopping Cart** - Add, remove, update items
-- 💳 **Simulated Checkout** - Address and delivery method form
-- 📦 **Order History** - Track completed purchases
-- 👤 **Full Authentication** - Registration, login and logout with JWT
-- 📊 **Observability Dashboard** - Prometheus + Grafana
+- 👤 **Full Authentication** - Registration, login and logout with token auth (Laravel Sanctum)
+- 🧑‍💼 **User Profile** - Editable profile (phone/address) that **pre-fills the checkout** form
+- 💳 **Checkout + Payment Screen** - Address form, then a dedicated payment screen with **credit/debit card (masked inputs) and Pix**
+- 📦 **Order History** - Track orders and their payment status
 - 🏆 **Achievement System** - 12 gamified badges
-- 🌐 **REST API** - 7 fully functional controllers
+- 📝 **Audit / Activity Log** - Every key action (register, login, cart, order, payment, profile update) is recorded in an `audit_logs` table
+- 📈 **Metrics & Observability** - `/api/metrics` (Prometheus format) + Prometheus + Grafana dashboards
+- 🌐 **REST API** - 10 controllers, fully tested (**~98% line coverage**, min 80% enforced)
+- 🚀 **CI/CD** - Push to `main` auto-builds images and deploys to Oracle Cloud
 
 ### Planned Features 🔜
 
 - 💰 Virtual currency system
 - 🎮 Advanced gamification
 - 📱 Mobile version
-- 🔍 Advanced search with filters
 - ⭐ Rating system
 
 ---
@@ -114,15 +118,15 @@ Grafana:  http://localhost:3001
 ecommerce-simulator/
 │
 ├── laravel/                          # Laravel 11 Backend
-│   ├── app/Http/Controllers/        # 7 API Controllers
-│   │   ├── AuthController.php        # Login, Register, Logout
-│   │   ├── ProductController.php     # Products with filters
-│   │   ├── CartController.php        # Shopping cart CRUD
-│   │   ├── OrderController.php       # Orders
-│   │   └── ...
-│   ├── app/Models/                  # 13 Eloquent Models
-│   ├── database/migrations/         # 12 Migrations
-│   ├── database/seeders/            # 4 Seeders (99+ products)
+│   ├── app/Http/Controllers/        # 10 API Controllers (auth, profile,
+│   │                                #   products, cart, orders, payment,
+│   │                                #   achievements, metrics, ...)
+│   ├── app/Services/AuditService.php # Records actions + Prometheus metrics
+│   ├── app/Models/                  # 14 Eloquent Models (incl. AuditLog)
+│   ├── database/factories/          # Model factories (for tests/seeds)
+│   ├── database/migrations/         # Migrations (catalog, profile, audit_logs)
+│   ├── database/seeders/            # Seeders (99 products) — idempotent
+│   ├── tests/                       # PHPUnit suite (~98% coverage)
 │   └── routes/api.php               # Route definitions
 │
 ├── resources/js/                    # Vue 3 Frontend
@@ -130,20 +134,23 @@ ecommerce-simulator/
 │   │   ├── auth/                    # Authentication (Login, Register)
 │   │   ├── products/                # Product catalog
 │   │   ├── cart/                    # Shopping cart
-│   │   ├── checkout/                # Checkout process
+│   │   ├── checkout/                # Checkout + Payment screen
 │   │   ├── orders/                  # Order history
+│   │   ├── profile/                 # User profile
 │   │   ├── achievements/            # Badge system
 │   │   └── layout/                  # Layout components
-│   ├── stores/                      # Pinia State Management (5 stores)
-│   ├── composables/                 # Reusable logic (3 composables)
-│   ├── router/                      # Vue Router with protected routes
-│   └── assets/                      # Styles and constants
+│   ├── stores/                      # Pinia State Management
+│   ├── composables/                 # Reusable logic (useApi, ...)
+│   └── router/                      # Vue Router with protected routes
 │
-├── docker-compose.yml               # Service orchestration
-├── Dockerfile                       # Container build
-├── prometheus.yml                   # Prometheus config
-└── package.json                     # Node dependencies
-
+├── docker-compose.yml               # Dev stack orchestration
+├── docker-compose.prod.yml          # Production stack (1 core / 1 GB)
+├── Dockerfile / Dockerfile.frontend.prod
+├── laravel/Dockerfile.prod          # Production API image
+├── nginx.conf                       # SPA + /api reverse proxy (prod)
+├── .github/workflows/deploy.yml     # CI/CD: build → GHCR → deploy
+├── DEPLOY.md                        # Deployment guide (Oracle Cloud)
+└── prometheus.yml                   # Prometheus config
 ```
 
 ---
@@ -178,26 +185,33 @@ ecommerce-simulator/
 ### Backend REST API
 
 ```
-POST   /api/auth/register        → Register user
-POST   /api/auth/login           → Login
-POST   /api/auth/logout          → Logout (protected)
-GET    /api/auth/me              → User data (protected)
+POST   /api/auth/register            → Register user
+POST   /api/auth/login               → Login
+POST   /api/auth/logout              → Logout (protected)
+GET    /api/auth/me                  → User data (protected)
 
-GET    /api/products             → List products (with filters)
-GET    /api/products/{id}        → Product details
-GET    /api/categories           → List categories
+GET    /api/profile                  → Get profile (protected)
+PUT    /api/profile                  → Update profile (protected)
 
-GET    /api/cart                 → View cart (protected)
-POST   /api/cart                 → Add item (protected)
-PUT    /api/cart/{id}            → Update quantity (protected)
-DELETE /api/cart/{id}            → Remove item (protected)
+GET    /api/products                 → List products (search/filter/sort/paginate)
+GET    /api/products/{id}            → Product details
+GET    /api/categories               → List categories
 
-GET    /api/orders               → Order history (protected)
-GET    /api/orders/{id}          → Order details (protected)
-POST   /api/orders               → Create order (protected)
+GET    /api/cart                     → View cart (protected)
+POST   /api/cart                     → Add item (protected)
+PUT    /api/cart/{id}                → Update quantity (protected)
+DELETE /api/cart/{id}                → Remove item (protected)
 
-GET    /api/shipping-methods     → Shipping methods
-GET    /api/achievements         → User achievements (protected)
+GET    /api/orders                   → Order history (protected)
+GET    /api/orders/{id}              → Order details (protected)
+POST   /api/orders                   → Create order — status "pending" (protected)
+POST   /api/orders/{order}/payment   → Pay an order — card/Pix (protected)
+
+GET    /api/shipping-methods         → Shipping methods
+GET    /api/achievements             → User achievements (protected)
+
+GET    /api/health                   → Health check
+GET    /api/metrics                  → Prometheus metrics (from the audit log)
 ```
 
 ### Frontend Routes
@@ -208,9 +222,11 @@ GET    /api/achievements         → User achievements (protected)
 /auth/register       → Registration page
 /products/:id        → Product details
 /cart                → Shopping cart (protected)
-/checkout            → Checkout (protected)
+/checkout            → Checkout / delivery details (protected)
+/orders/:id/payment  → Payment screen — card / Pix (protected)
 /orders              → Order history (protected)
 /orders/:id          → Order details (protected)
+/profile             → User profile (protected)
 /achievements        → Achievements (protected)
 ```
 
@@ -266,7 +282,7 @@ docker-compose up -d --build
 
 ---
 
-## 🧪 Testing the Application
+## 🧪 Manual Walkthrough
 
 ### 1. Register a new user
 
@@ -292,18 +308,68 @@ docker-compose up -d --build
 ```bash
 1. Click on "Add to Cart" on any product
 2. See the number on 🛍️ icon (cart)
-3. Click on the cart
-4. Click on "Proceed to Checkout"
-5. Fill in: Name, Email, Phone, Address
-6. Select delivery method
-7. Click on "Place Order"
+3. Click on the cart → "Proceed to Checkout"
+4. The delivery form is pre-filled from your profile (edit if needed)
+5. Select a delivery method → "Continue to Payment"
+6. On the payment screen, pick Credit Card / Debit Card / Pix
+7. (cards) the number, expiry and CVV fields are masked as you type
+8. Confirm payment → order becomes "confirmed"
 ```
 
 ### 4. View order history
 
 ```bash
 1. Click on "Orders" in menu
-2. See all your orders
+2. See all your orders and their status
+```
+
+---
+
+## 🧪 Testing
+
+The backend has an automated test suite (PHPUnit) with **~98% line coverage**
+(a minimum of **80%** is enforced).
+
+```bash
+# Run the full suite
+docker-compose exec api ./vendor/bin/phpunit
+
+# Run with coverage + enforce the 80% minimum (fails below it)
+docker-compose exec api composer test:coverage
+# HTML report: laravel/coverage/html/index.html
+```
+
+Tests run against an isolated in-memory SQLite database, so they never touch
+your PostgreSQL data. Coverage spans every model, controller and the
+`AuditService` (auth, products, cart, orders, payment, profile, achievements,
+metrics).
+
+---
+
+## 🚀 Deployment
+
+The repo ships with a **production stack** and an **automated CI/CD pipeline**.
+
+- **`docker-compose.prod.yml`** — a trimmed stack tuned for a 1 core / 1 GB
+  instance: the frontend is built to static files and served by nginx (which
+  also proxies `/api`), Redis is dropped (cache → database, sessions →
+  cookie), and Prometheus/Grafana are optional (`monitoring` profile). The
+  core services idle at **~80 MB** total.
+- **`.github/workflows/deploy.yml`** — on every push to `main`, GitHub Actions
+  builds the API + frontend images, pushes them to **GHCR**, and deploys to
+  the server over SSH (`docker compose pull && up -d`). Building happens in CI,
+  never on the small instance.
+
+This project is deployed to an **Oracle Cloud** VM (Ubuntu 22.04,
+VM.Standard.E2.1.Micro). Full step-by-step instructions — server setup, the
+two-layer Oracle firewall, GitHub secrets and troubleshooting — are in
+**[DEPLOY.md](DEPLOY.md)**.
+
+```bash
+# Run the production stack locally
+cp .env.prod.example .env.prod   # set a real APP_KEY and DB_PASSWORD
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+# App on http://localhost
 ```
 
 ---
@@ -382,43 +448,6 @@ docker-compose exec api php artisan migrate:fresh --seed
 
 ---
 
-## 🚀 Production Deployment (fits 1 core / 1 GB)
-
-The default `docker-compose.yml` is a development stack (Vite dev server,
-Redis, Prometheus, Grafana) and is too heavy for a 1 GB instance. For
-deployment there is a trimmed production stack in `docker-compose.prod.yml`:
-
-- **Frontend** built to static files and served by nginx (no Node at runtime)
-- **API** as a self-contained image (deps installed at build, config/routes cached)
-- **PostgreSQL** with reduced `shared_buffers`
-- **No Redis** — cache uses the database, sessions use cookies
-- **Prometheus + Grafana** are optional (behind the `monitoring` profile)
-- Per-container `mem_limit`s; the core stack idles at **~80 MB total**
-
-nginx serves the SPA and proxies `/api` to the API container (same origin,
-so there is no CORS to configure).
-
-### Steps
-
-```bash
-# 1. Configure environment
-cp .env.prod.example .env.prod
-# Edit .env.prod: set a real APP_KEY and DB_PASSWORD
-#   docker run --rm php:8.3-cli php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
-
-# 2. Build and start (frontend on port 80; migrations + seed run automatically)
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
-
-# 3. (optional) Start monitoring too
-docker compose --env-file .env.prod -f docker-compose.prod.yml --profile monitoring up -d
-```
-
-> ⚠️ The image **build** (npm + composer) needs more RAM than the runtime and
-> may OOM on a 1 GB box. Build on a machine with more memory (or CI) and push
-> the images, or temporarily add ~2 GB of swap on the instance for the build.
-
----
-
 ## 🤝 Contributing
 
 This is an open educational project! Feel free to:
@@ -470,4 +499,4 @@ If you have questions or problems:
 2. Open an [Issue](https://github.com/gtomanini/ecommerce-simulator/issues)
 3. Check the logs: `docker-compose logs -f`
 
-Last updated: June 2026
+Last updated: June 2026 — production-ready, auto-deployed to Oracle Cloud.
