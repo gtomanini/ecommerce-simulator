@@ -31,6 +31,7 @@ services:
       - shopping-network
 
   api:
+    image: ${API_IMAGE:-ghcr.io/gtomanini/ecommerce-simulator-api:latest}
     build:
       context: ./laravel
       dockerfile: Dockerfile.prod
@@ -62,6 +63,7 @@ services:
       - shopping-network
 
   frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/gtomanini/ecommerce-simulator-frontend:latest}
     build:
       context: .
       dockerfile: Dockerfile.frontend.prod
