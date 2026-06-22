@@ -1,6 +1,20 @@
-# 🛒 E-Commerce Simulator
+# 🛒 ShopSim — the no-spend shopping simulator
 
-A shopping simulation platform where users experience real e-commerce without paying anything. Full-stack educational project with Laravel, Vue 3, PostgreSQL and Docker.
+> **Buy everything. Spend nothing. Feel amazing.**
+
+ShopSim is a fully working e-commerce — browse the catalog, fill your cart, check
+out and "pay" — built to deliver all the **dopamine of online shopping with zero
+money and zero regret**. It's retail therapy without the bill: the buyer's high,
+completely risk-free.
+
+And since nothing here costs a cent, the shelves aren't limited to normal stuff.
+The catalog is growing to include things money (and sometimes the laws of physics)
+**can't usually buy** — a private jet ✈️, the Moon 🌕, a pet dragon 🐉, a spare
+kidney 🫀, a time machine ⏳ — add to cart, checkout, dopamine delivered. 😄
+
+Under the hood it's a production-grade full-stack project: **Laravel API + Vue 3
+SPA + PostgreSQL**, a **Filament admin panel**, automated tests (~98% coverage)
+and a full **CI/CD pipeline**.
 
 **Status:** ✅ Production-ready — auto-deployed to Oracle Cloud via GitHub Actions
 
@@ -27,14 +41,15 @@ A shopping simulation platform where users experience real e-commerce without pa
 
 ### Implemented Features ✅
 
-- 🛍️ **Product Catalog** - 99 products with categories, images and variations (search, filter, sort, pagination)
+- 🛍️ **Product Catalog** - 99 products with categories, images and variations (search, filter, sort, pagination) — plus a growing shelf of **absurd, impossible-to-buy items**
+- 🧠 **Guilt-free dopamine** - The whole point: experience a real purchase flow (cart → checkout → payment → order) without spending a single cent
 - 🛒 **Shopping Cart** - Add, remove, update items
 - 👤 **Full Authentication** - Registration, login and logout with token auth (Laravel Sanctum)
 - 🧑‍💼 **User Profile** - Editable profile (phone/address) that **pre-fills the checkout** form
 - 💳 **Checkout + Payment Screen** - Address form, then a dedicated payment screen with **credit/debit card (masked inputs) and Pix**
 - 📦 **Order History** - Track orders and their payment status
 - 🏆 **Achievement System** - 12 gamified badges
-- 🛠️ **Admin Panel** - Filament admin at `/admin` to manage products & categories (role-gated by `is_admin`)
+- 🛠️ **Admin Panel** - Filament admin at `/admin` to manage products, categories and admin users (role-gated by `is_admin`)
 - 📝 **Audit / Activity Log** - Every key action (register, login, cart, order, payment, profile update) is recorded in an `audit_logs` table
 - 📈 **Metrics & Observability** - `/api/metrics` (Prometheus format) + Prometheus + Grafana dashboards
 - 🌐 **REST API** - 10 controllers, fully tested (**~98% line coverage**, min 80% enforced)
@@ -42,9 +57,10 @@ A shopping simulation platform where users experience real e-commerce without pa
 
 ### Planned Features 🔜
 
-- 💰 Virtual currency system
+- 🤪 **Absurd catalog** - "impossible to buy" products (a private jet, the Moon, a spare kidney, a dragon egg...) with appropriately ridiculous prices
+- 💰 Virtual currency / fake balance to splurge with
+- 🎉 Over-the-top purchase celebrations (confetti, sounds — maximize the dopamine)
 - 🎮 Advanced gamification
-- 📱 Mobile version
 - ⭐ Rating system
 
 ---
