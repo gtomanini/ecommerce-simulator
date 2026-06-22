@@ -21,6 +21,22 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasApiTokens, Notifiable;
 
+    /** Shared account used for one-click guest checkout. */
+    public const GUEST_EMAIL = 'guest@shopsim.local';
+
+    /** Expose `is_guest` in JSON so the frontend can skip the checkout form. */
+    protected $appends = ['is_guest'];
+
+    public function isGuest(): bool
+    {
+        return $this->email === self::GUEST_EMAIL;
+    }
+
+    public function getIsGuestAttribute(): bool
+    {
+        return $this->isGuest();
+    }
+
     /**
      * Get the attributes that should be cast.
      *

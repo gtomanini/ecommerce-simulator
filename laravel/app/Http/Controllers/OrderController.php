@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\ShippingMethod;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 
@@ -31,57 +32,80 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'shipping_method_id' => 'required|exists:shipping_methods,id',
-            'buyer_name' => 'required|string',
-            'buyer_email' => 'required|email',
-            'buyer_phone' => 'required|string',
-            'delivery_address' => 'required|string',
-            'delivery_city' => 'required|string',
-            'delivery_state' => 'required|string',
-            'delivery_zip' => 'required|string',
-        ]);
-
         $user = $request->user();
+        $isGuest = $user->isGuest();
+
+        // Guests skip shipping/registration entirely — only payment matters.
+        if (!$isGuest) {
+            $validated = $request->validate([
+                'shipping_method_id' => 'required|exists:shipping_methods,id',
+                'buyer_name' => 'required|string',
+                'buyer_email' => 'required|email',
+                'buyer_phone' => 'required|string',
+                'delivery_address' => 'required|string',
+                'delivery_city' => 'required|string',
+                'delivery_state' => 'required|string',
+                'delivery_zip' => 'required|string',
+            ]);
+        }
+
         $cart = Cart::where('user_id', $user->id)->with('items')->first();
 
         if (!$cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 400);
         }
 
-        // Remember the delivery details on the user's profile so the
-        // checkout form comes pre-filled on their next purchase.
-        $user->update([
-            'name' => $validated['buyer_name'],
-            'phone' => $validated['buyer_phone'],
-            'address' => $validated['delivery_address'],
-            'city' => $validated['delivery_city'],
-            'state' => $validated['delivery_state'],
-            'zip' => $validated['delivery_zip'],
-        ]);
+        if ($isGuest) {
+            // Cheapest available method (e.g. free store pickup); no real shipping.
+            $shippingMethod = ShippingMethod::orderBy('base_cost')->firstOrFail();
+            $delivery = [
+                'buyer_name' => $user->name,
+                'buyer_email' => $user->email,
+                'buyer_phone' => 'N/A',
+                'delivery_address' => 'Guest checkout — no shipping',
+                'delivery_city' => 'N/A',
+                'delivery_state' => 'N/A',
+                'delivery_zip' => 'N/A',
+                'shipping_method_id' => $shippingMethod->id,
+            ];
+        } else {
+            // Remember the delivery details on the user's profile so the
+            // checkout form comes pre-filled on their next purchase.
+            $user->update([
+                'name' => $validated['buyer_name'],
+                'phone' => $validated['buyer_phone'],
+                'address' => $validated['delivery_address'],
+                'city' => $validated['delivery_city'],
+                'state' => $validated['delivery_state'],
+                'zip' => $validated['delivery_zip'],
+            ]);
+
+            $shippingMethod = ShippingMethod::findOrFail($validated['shipping_method_id']);
+            $delivery = [
+                'buyer_name' => $validated['buyer_name'],
+                'buyer_email' => $validated['buyer_email'],
+                'buyer_phone' => $validated['buyer_phone'],
+                'delivery_address' => $validated['delivery_address'],
+                'delivery_city' => $validated['delivery_city'],
+                'delivery_state' => $validated['delivery_state'],
+                'delivery_zip' => $validated['delivery_zip'],
+                'shipping_method_id' => $validated['shipping_method_id'],
+            ];
+        }
 
         $subtotal = $cart->items->sum(fn($item) => $item->price * $item->quantity);
-        $shippingMethod = \App\Models\ShippingMethod::findOrFail($validated['shipping_method_id']);
         $shippingCost = $shippingMethod->base_cost;
         $total = $subtotal + $shippingCost;
 
-        $order = Order::create([
+        $order = Order::create(array_merge([
             'user_id' => $user->id,
             'order_number' => 'ORD-' . date('YmdHis') . '-' . uniqid(),
             'subtotal' => $subtotal,
             'shipping_cost' => $shippingCost,
             'total' => $total,
             'status' => 'pending',
-            'buyer_name' => $validated['buyer_name'],
-            'buyer_email' => $validated['buyer_email'],
-            'buyer_phone' => $validated['buyer_phone'],
-            'delivery_address' => $validated['delivery_address'],
-            'delivery_city' => $validated['delivery_city'],
-            'delivery_state' => $validated['delivery_state'],
-            'delivery_zip' => $validated['delivery_zip'],
-            'shipping_method_id' => $validated['shipping_method_id'],
             'estimated_delivery' => now()->addDays($shippingMethod->estimated_days),
-        ]);
+        ], $delivery));
 
         foreach ($cart->items as $cartItem) {
             OrderItem::create([

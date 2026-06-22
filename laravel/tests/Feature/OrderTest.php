@@ -112,6 +112,28 @@ class OrderTest extends TestCase
         ]);
     }
 
+    public function test_guest_creates_order_without_any_delivery_data(): void
+    {
+        $guest = User::factory()->create(['email' => User::GUEST_EMAIL]);
+        Sanctum::actingAs($guest);
+
+        ShippingMethod::factory()->create(['base_cost' => 0, 'estimated_days' => 1]);
+        $cart = Cart::factory()->create(['user_id' => $guest->id]);
+        CartItem::factory()->create(['cart_id' => $cart->id, 'price' => 80, 'quantity' => 2]);
+
+        // No shipping/registration fields at all — only the order request.
+        $response = $this->postJson('/api/orders', []);
+
+        $response->assertStatus(201)
+            ->assertJson(['status' => 'pending', 'total' => 160]);
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $guest->id,
+            'buyer_email' => User::GUEST_EMAIL,
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_cannot_create_order_with_empty_cart(): void
     {
         $user = User::factory()->create();

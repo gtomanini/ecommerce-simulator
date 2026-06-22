@@ -1,7 +1,13 @@
 <template>
   <div class="checkout-page">
     <h1>Checkout</h1>
-    <form @submit.prevent="handleCheckout">
+
+    <div v-if="preparingGuest" class="preparing">
+      <span class="spinner"></span>
+      Taking you straight to payment…
+    </div>
+
+    <form v-else @submit.prevent="handleCheckout">
       <div class="form-group">
         <label>Name</label>
         <input v-model="form.buyer_name" type="text" required />
@@ -58,6 +64,7 @@ const authStore = useAuthStore()
 const { get } = useApi()
 const router = useRouter()
 const shippingMethods = ref([])
+const preparingGuest = ref(false)
 
 const form = reactive({
   buyer_name: '',
@@ -83,8 +90,22 @@ const prefillFromUser = () => {
 }
 
 onMounted(async () => {
-  // Make sure we have the latest user profile, then pre-fill the form.
+  // Make sure we have the latest user info first.
   await authStore.fetchUser()
+
+  // Guests skip the whole shipping/registration form — straight to payment.
+  if (authStore.user?.is_guest) {
+    preparingGuest.value = true
+    const order = await ordersStore.createOrder({})
+    if (order) {
+      cartStore.clearCart()
+      router.replace(`/orders/${order.id}/payment`)
+    } else {
+      router.replace('/cart')
+    }
+    return
+  }
+
   prefillFromUser()
 
   const response = await get('/shipping-methods')
@@ -101,6 +122,28 @@ const handleCheckout = async () => {
 </script>
 
 <style scoped>
+.preparing {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .checkout-page {
   padding: 2rem;
   max-width: 600px;

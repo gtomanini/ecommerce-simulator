@@ -51,7 +51,7 @@ class AuthController extends Controller
     public function guest(Request $request)
     {
         $user = User::firstOrCreate(
-            ['email' => 'guest@shopsim.local'],
+            ['email' => User::GUEST_EMAIL],
             ['name' => 'Guest Shopper', 'password' => Hash::make(Str::random(40))]
         );
 
