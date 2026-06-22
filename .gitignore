@@ -10,7 +10,6 @@
 /laravel/.env.production
 /laravel/.env.*.backup
 /laravel/.phpunit.cache
-/laravel/phpunit.xml
 
 # Laravel IDE Helpers
 /laravel/.phpstorm.meta.php
