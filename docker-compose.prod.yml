@@ -49,9 +49,10 @@ services:
       DB_USERNAME: ${DB_USERNAME:-shopping}
       DB_PASSWORD: ${DB_PASSWORD:-shopping_password}
 
-      # No Redis: cache lives in the database, sessions in cookies.
+      # No Redis: cache + sessions live in the database (sessions in DB are
+      # required by the Filament/Livewire admin panel).
       CACHE_STORE: database
-      SESSION_DRIVER: cookie
+      SESSION_DRIVER: database
       QUEUE_CONNECTION: sync
       LOG_CHANNEL: stderr
     depends_on:

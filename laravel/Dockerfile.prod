@@ -5,10 +5,16 @@ FROM php:8.3-cli
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
+    libicu-dev \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     postgresql-client \
     unzip \
     git \
-    && docker-php-ext-install pdo pdo_pgsql \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_pgsql intl zip gd \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -33,6 +39,10 @@ RUN mkdir -p bootstrap/cache \
     && chmod -R 775 bootstrap/cache storage
 
 RUN composer dump-autoload --optimize --no-dev
+
+# Publish the Filament admin panel assets into public/ (served by the API
+# container and proxied by nginx at /css/filament and /js/filament).
+RUN php artisan filament:assets
 
 COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint

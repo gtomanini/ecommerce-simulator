@@ -34,6 +34,7 @@ A shopping simulation platform where users experience real e-commerce without pa
 - 💳 **Checkout + Payment Screen** - Address form, then a dedicated payment screen with **credit/debit card (masked inputs) and Pix**
 - 📦 **Order History** - Track orders and their payment status
 - 🏆 **Achievement System** - 12 gamified badges
+- 🛠️ **Admin Panel** - Filament admin at `/admin` to manage products & categories (role-gated by `is_admin`)
 - 📝 **Audit / Activity Log** - Every key action (register, login, cart, order, payment, profile update) is recorded in an `audit_logs` table
 - 📈 **Metrics & Observability** - `/api/metrics` (Prometheus format) + Prometheus + Grafana dashboards
 - 🌐 **REST API** - 10 controllers, fully tested (**~98% line coverage**, min 80% enforced)
@@ -105,6 +106,7 @@ Grafana:  http://localhost:3001
 |---------|-----|-------------|
 | **Vue 3 Frontend** | http://localhost:3000 | Create account |
 | **Laravel API** | http://localhost:8000/api/health | N/A |
+| **Admin Panel (Filament)** | http://localhost:8000/admin | `admin@example.com` / `password` |
 | **Grafana Dashboard** | http://localhost:3001 | `admin` / `admin` |
 | **Prometheus Metrics** | http://localhost:9090 | N/A |
 | **PostgreSQL Database** | `localhost:5432` | `shopping` / `shopping_password` |

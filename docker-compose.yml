@@ -86,7 +86,7 @@ services:
       REDIS_PORT: 6379
 
       CACHE_DRIVER: redis
-      SESSION_DRIVER: cookie
+      SESSION_DRIVER: database
 
       PROMETHEUS_ENABLED: true
     depends_on:
@@ -107,6 +107,7 @@ services:
              rm -f /app/.env &&
              composer install --no-interaction --no-scripts &&
              npm install &&
+             php artisan filament:assets &&
              echo 'Laravel ready!' &&
              php artisan serve --host=0.0.0.0"
     networks:

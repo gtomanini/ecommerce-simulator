@@ -21,6 +21,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Admin user for the Filament panel (/admin). Ensured on every run,
+        // even after the catalog is already seeded.
+        User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'Admin', 'password' => Hash::make('password'), 'is_admin' => true]
+        );
+
         if (Category::exists()) {
             return;
         }
