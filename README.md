@@ -106,7 +106,7 @@ Grafana:  http://localhost:3001
 |---------|-----|-------------|
 | **Vue 3 Frontend** | http://localhost:3000 | Create account |
 | **Laravel API** | http://localhost:8000/api/health | N/A |
-| **Admin Panel (Filament)** | http://localhost:8000/admin | `admin@example.com` / `password` |
+| **Admin Panel (Filament)** | http://localhost:8000/admin | Admin account (seeded on first run) |
 | **Grafana Dashboard** | http://localhost:3001 | `admin` / `admin` |
 | **Prometheus Metrics** | http://localhost:9090 | N/A |
 | **PostgreSQL Database** | `localhost:5432` | `shopping` / `shopping_password` |

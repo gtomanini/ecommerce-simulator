@@ -44,4 +44,12 @@ class FilamentAccessTest extends TestCase
 
         $response->assertSuccessful();
     }
+
+    public function test_admin_can_manage_users(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get('/admin/users')->assertSuccessful();
+        $this->actingAs($admin)->get('/admin/users/create')->assertSuccessful();
+    }
 }
