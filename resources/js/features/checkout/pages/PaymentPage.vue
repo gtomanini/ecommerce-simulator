@@ -1,4 +1,20 @@
 <template>
+  <!-- Celebration overlay shown right after a successful payment -->
+  <div v-if="celebrating" class="celebration" @click="goToOrder">
+    <div class="celebration-card" @click.stop>
+      <div class="party">🎉</div>
+      <h2>Purchase complete!</h2>
+      <p class="dopamine">
+        You just felt <strong>R$ {{ paidTotal }}</strong> of pure dopamine…
+      </p>
+      <p class="spent">…and paid <strong>R$ 0,00</strong> 😎</p>
+      <div class="celebration-actions">
+        <button class="submit-btn" @click="goToOrder">View my order</button>
+        <button class="ghost-btn" @click="keepShopping">Keep shopping</button>
+      </div>
+    </div>
+  </div>
+
   <div class="payment-page">
     <h1>Payment</h1>
 
@@ -91,12 +107,16 @@
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders'
+import { useCelebration } from '@/composables/useCelebration'
 
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
+const { primeAudio, celebrate } = useCelebration()
 
 const order = ref(null)
+const celebrating = ref(false)
+const paidTotal = computed(() => (order.value ? formatPrice(order.value.total) : '0.00'))
 
 const methods = [
   { value: 'credit_card', label: 'Credit Card', icon: '💳' },
@@ -141,6 +161,9 @@ onMounted(async () => {
 })
 
 const handlePay = async () => {
+  // Unlock audio within this click so the cha-ching can play on success.
+  primeAudio()
+
   const payload = { method: form.method }
   if (isCard.value) {
     payload.card_holder = form.card_holder
@@ -151,9 +174,13 @@ const handlePay = async () => {
 
   const result = await ordersStore.payOrder(route.params.id, payload)
   if (result) {
-    router.push(`/orders/${route.params.id}`)
+    celebrating.value = true
+    celebrate()
   }
 }
+
+const goToOrder = () => router.push(`/orders/${route.params.id}`)
+const keepShopping = () => router.push('/')
 </script>
 
 <style scoped>
@@ -273,5 +300,88 @@ input[type='text'] {
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* --- Celebration overlay --- */
+.celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.celebration-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: pop-in 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.party {
+  font-size: 3.5rem;
+  line-height: 1;
+  animation: wiggle 0.8s ease-in-out;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-12deg) scale(1.1); }
+  75% { transform: rotate(12deg) scale(1.1); }
+}
+
+.celebration-card h2 {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1.6rem;
+  color: #111827;
+}
+
+.dopamine {
+  color: #4b5563;
+  margin: 0.25rem 0;
+}
+
+.spent {
+  color: #16a34a;
+  font-size: 1.15rem;
+  margin: 0.25rem 0 1.5rem;
+}
+
+.celebration-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ghost-btn {
+  padding: 0.6rem;
+  background: transparent;
+  color: #3b82f6;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ghost-btn:hover {
+  text-decoration: underline;
 }
 </style>
