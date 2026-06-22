@@ -11,6 +11,7 @@ export function useAuth() {
     isLoggedIn,
     currentUser,
     login: authStore.login,
+    guestLogin: authStore.guestLogin,
     register: authStore.register,
     logout: authStore.logout,
   }

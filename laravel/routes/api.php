@@ -23,6 +23,7 @@ Route::get('/metrics', [MetricsController::class, 'metrics']);
 // Public auth routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/guest', [AuthController::class, 'guest']);
 
 // Public product routes
 Route::get('/products', [ProductController::class, 'index']);

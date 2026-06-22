@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -33,6 +35,41 @@ class AuthController extends Controller
         );
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+        ], 201);
+    }
+
+    /**
+     * One-click "guest" checkout: log in as a single shared guest account
+     * (created on first use). Every guest purchase is attributed to this
+     * account, which keeps product-sales tracking intact without forcing
+     * anyone to register.
+     */
+    public function guest(Request $request)
+    {
+        $user = User::firstOrCreate(
+            ['email' => 'guest@shopsim.local'],
+            ['name' => 'Guest Shopper', 'password' => Hash::make(Str::random(40))]
+        );
+
+        // Start the guest with a clean cart.
+        $cart = Cart::where('user_id', $user->id)->first();
+        if ($cart) {
+            $cart->items()->delete();
+        }
+
+        AuditService::logAction(
+            $user,
+            'guest_checkout',
+            'A guest started shopping without an account',
+            'User',
+            $user->id
+        );
+
+        $token = $user->createToken('guest_token')->plainTextToken;
 
         return response()->json([
             'user' => $user,

@@ -30,6 +30,13 @@
       </button>
     </form>
 
+    <div class="divider"><span>or</span></div>
+
+    <button type="button" :disabled="isLoading" class="guest-btn" @click="handleGuest">
+      😤 No patience for login — just let me pay
+    </button>
+    <p class="guest-hint">Skip the account. Shop and "checkout" as a guest.</p>
+
     <p class="register-link">
       Don't have an account? <router-link to="/auth/register">Register here</router-link>
     </p>
@@ -39,22 +46,32 @@
 <script setup>
 import { reactive, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
-const { login, isLoggedIn } = useAuth()
+const route = useRoute()
+const { login, guestLogin } = useAuth()
+const authStore = useAuthStore()
 
 const form = reactive({
   email: '',
   password: '',
 })
 
-const isLoading = computed(() => false)
+const isLoading = computed(() => authStore.loading)
+
+const redirectAfterAuth = () => router.push(route.query.redirect || '/')
 
 const handleLogin = async () => {
-  const success = await login(form.email, form.password)
-  if (success) {
-    router.push('/')
+  if (await login(form.email, form.password)) {
+    redirectAfterAuth()
+  }
+}
+
+const handleGuest = async () => {
+  if (await guestLogin()) {
+    redirectAfterAuth()
   }
 }
 </script>
@@ -131,5 +148,57 @@ input:focus {
 .register-link a {
   color: #3b82f6;
   font-weight: 500;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.divider span {
+  padding: 0 0.75rem;
+}
+
+.guest-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.guest-btn:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.guest-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.guest-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.guest-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0.5rem 0 1rem;
 }
 </style>

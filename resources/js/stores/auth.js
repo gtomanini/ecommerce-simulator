@@ -52,6 +52,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const guestLogin = async () => {
+    loading.value = true
+    try {
+      const response = await post('/auth/guest')
+      user.value = response.data.user
+      token.value = response.data.token
+      localStorage.setItem('auth_token', token.value)
+      success("Let's go — straight to the good part! 🛍️")
+      return true
+    } catch (err) {
+      error(err.response?.data?.message || 'Could not start guest checkout')
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   const logout = () => {
     user.value = null
     token.value = null
@@ -97,6 +114,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     register,
     login,
+    guestLogin,
     logout,
     fetchUser,
     updateProfile,

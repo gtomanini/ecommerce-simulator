@@ -57,6 +57,44 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
+    public function test_guest_checkout_returns_a_token(): void
+    {
+        $response = $this->postJson('/api/auth/guest');
+
+        $response->assertStatus(201)
+            ->assertJsonStructure(['user' => ['id', 'name', 'email'], 'token']);
+
+        $this->assertDatabaseHas('users', ['email' => 'guest@shopsim.local']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'guest_checkout']);
+    }
+
+    public function test_guest_checkout_reuses_the_same_account(): void
+    {
+        $first = $this->postJson('/api/auth/guest')->json('user.id');
+        $second = $this->postJson('/api/auth/guest')->json('user.id');
+
+        $this->assertSame($first, $second);
+        $this->assertSame(1, \App\Models\User::where('email', 'guest@shopsim.local')->count());
+    }
+
+    public function test_guest_checkout_starts_with_a_clean_cart(): void
+    {
+        // First guest leaves an item in the shared cart.
+        $token = $this->postJson('/api/auth/guest')->json('token');
+        $product = \App\Models\Product::factory()->create();
+        $this->withToken($token)->postJson('/api/cart', [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ])->assertStatus(201);
+
+        // Next guest session should start fresh.
+        $this->postJson('/api/auth/guest');
+
+        $guest = \App\Models\User::where('email', 'guest@shopsim.local')->first();
+        $cart = \App\Models\Cart::where('user_id', $guest->id)->first();
+        $this->assertTrue($cart === null || $cart->items()->count() === 0);
+    }
+
     public function test_user_can_login_with_valid_credentials(): void
     {
         $user = User::factory()->create([
