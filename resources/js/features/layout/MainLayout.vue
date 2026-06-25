@@ -1,8 +1,9 @@
 <template>
   <div class="main-layout">
     <Header />
+    <BaitBar />
     <main class="main-content">
-      <div class="container">
+      <div class="max-w-7xl mx-auto px-4">
         <slot />
       </div>
     </main>
@@ -12,6 +13,7 @@
 
 <script setup>
 import Header from '@/features/layout/Header.vue'
+import BaitBar from '@/features/layout/BaitBar.vue'
 import Footer from '@/features/layout/Footer.vue'
 </script>
 
@@ -24,6 +26,6 @@ import Footer from '@/features/layout/Footer.vue'
 
 .main-content {
   flex: 1;
-  padding: 2rem 0;
+  padding: 1.5rem 0 2.5rem;
 }
 </style>
