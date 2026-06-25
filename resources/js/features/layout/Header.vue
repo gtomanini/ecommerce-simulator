@@ -24,12 +24,17 @@
         </div>
       </form>
 
-      <!-- Cope balance -->
-      <div class="hidden md:flex items-center gap-2 bg-white/15 rounded-full px-4 py-1.5">
+      <!-- Cope balance (a meaningless, self-aware number) -->
+      <div class="relative group hidden md:flex items-center gap-2 bg-white/15 rounded-full px-4 py-1.5 cursor-help">
         <span class="text-yellow-300 text-lg">⭐</span>
         <div class="leading-tight">
           <div class="text-[10px] font-bold tracking-wider text-orange-100 uppercase">Your Cope</div>
           <div class="font-display font-bold text-base">{{ cope }}</div>
+        </div>
+        <div
+          class="absolute top-full right-0 mt-2 w-64 bg-gray-900 text-white text-xs leading-snug rounded-lg p-2.5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-30 text-left normal-case font-normal shadow-lg"
+        >
+          {{ copeMessage }}
         </div>
       </div>
 
@@ -72,8 +77,26 @@ const router = useRouter()
 
 const query = ref('')
 const cartItemCount = computed(() => cartStore.itemCount)
-// Playful "cope" balance — placeholder for the future virtual-currency feature.
-const cope = computed(() => '4,250')
+
+// "Your Cope": a deliberately meaningless number. Random, but stable for the
+// session so it doesn't flicker — with a self-aware tooltip to match.
+const COPE_MESSAGES = [
+  "Why are you even looking here? It's a made-up number. None of this is real.",
+  'This number means nothing. Neither does the cart. Carry on.',
+  "Cope: the only currency as fake as the shopping. Don't overthink it.",
+  "Stop analyzing it. It's vibes, not value.",
+]
+
+const cope = (() => {
+  let value = sessionStorage.getItem('shopsim_cope')
+  if (!value) {
+    value = (1000 + Math.floor(Math.random() * 98999)).toLocaleString('en-US')
+    sessionStorage.setItem('shopsim_cope', value)
+  }
+  return value
+})()
+
+const copeMessage = COPE_MESSAGES[Math.floor(Math.random() * COPE_MESSAGES.length)]
 
 const handleSearch = () => {
   productsStore.searchQuery = query.value

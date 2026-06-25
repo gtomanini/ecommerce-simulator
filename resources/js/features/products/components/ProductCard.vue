@@ -12,10 +12,11 @@
         🔥 HOT
       </span>
       <img
-        v-if="product.images && product.images[0]"
-        :src="product.images[0].image_url"
+        v-if="showImage"
+        :src="imageUrl"
         :alt="product.name"
         class="w-full h-full object-contain"
+        @error="imgError = true"
       />
       <div v-else class="w-full h-full flex items-center justify-center text-5xl">🛍️</div>
     </router-link>
@@ -43,7 +44,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useAuth } from '@/composables/useAuth'
 import { useRouter } from 'vue-router'
@@ -62,6 +63,12 @@ const router = useRouter()
 const { warning } = useNotification()
 
 const PASTELS = ['#dbeafe', '#dcfce7', '#fef9c3', '#fee2e2', '#f3e8ff', '#ffedd5']
+
+// Fall back to the emoji when an image URL is broken (404) instead of
+// leaking the alt text over the card.
+const imgError = ref(false)
+const imageUrl = computed(() => props.product.images?.[0]?.image_url)
+const showImage = computed(() => !!imageUrl.value && !imgError.value)
 
 const price = computed(() => Number(props.product.price).toFixed(2))
 // Deterministic, on-theme fake discount (it's "fake shopping" after all).
