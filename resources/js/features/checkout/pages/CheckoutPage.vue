@@ -1,51 +1,64 @@
 <template>
-  <div class="checkout-page">
-    <h1>Checkout</h1>
+  <div class="max-w-2xl mx-auto">
+    <h1 class="font-display font-bold text-3xl text-gray-800 mb-5">Where to send the imaginary box 📦</h1>
 
-    <div v-if="preparingGuest" class="preparing">
-      <span class="spinner"></span>
+    <div v-if="preparingGuest" class="bg-white rounded-2xl shadow-sm p-8 flex items-center gap-3 text-gray-500">
+      <span class="w-5 h-5 border-[3px] border-gray-200 border-t-orange-500 rounded-full animate-spin"></span>
       Taking you straight to payment…
     </div>
 
-    <form v-else @submit.prevent="handleCheckout">
-      <div class="form-group">
-        <label>Name</label>
-        <input v-model="form.buyer_name" type="text" required />
+    <form v-else @submit.prevent="handleCheckout" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Name</label>
+          <input v-model="form.buyer_name" type="text" required :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Email</label>
+          <input v-model="form.buyer_email" type="email" required :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Phone</label>
+          <input v-model="form.buyer_phone" type="tel" required :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Zip Code</label>
+          <input v-model="form.delivery_zip" type="text" required :class="inputClass" />
+        </div>
       </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input v-model="form.buyer_email" type="email" required />
+
+      <div class="flex flex-col gap-1.5">
+        <label class="font-semibold text-gray-700 text-sm">Address</label>
+        <input v-model="form.delivery_address" type="text" required :class="inputClass" />
       </div>
-      <div class="form-group">
-        <label>Phone</label>
-        <input v-model="form.buyer_phone" type="tel" required />
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">City</label>
+          <input v-model="form.delivery_city" type="text" required :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">State</label>
+          <input v-model="form.delivery_state" type="text" required :class="inputClass" />
+        </div>
       </div>
-      <div class="form-group">
-        <label>Address</label>
-        <input v-model="form.delivery_address" type="text" required />
-      </div>
-      <div class="form-group">
-        <label>City</label>
-        <input v-model="form.delivery_city" type="text" required />
-      </div>
-      <div class="form-group">
-        <label>State</label>
-        <input v-model="form.delivery_state" type="text" required />
-      </div>
-      <div class="form-group">
-        <label>Zip Code</label>
-        <input v-model="form.delivery_zip" type="text" required />
-      </div>
-      <div class="form-group">
-        <label>Shipping Method</label>
-        <select v-model="form.shipping_method_id" required>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="font-semibold text-gray-700 text-sm">Shipping Method</label>
+        <select v-model="form.shipping_method_id" required :class="inputClass">
           <option value="">Select a method</option>
           <option v-for="method in shippingMethods" :key="method.id" :value="method.id">
-            {{ method.name }} - R$ {{ method.base_cost }}
+            {{ method.name }} - ${{ method.base_cost }}
           </option>
         </select>
       </div>
-      <button type="submit" class="submit-btn">Continue to Payment</button>
+
+      <button
+        type="submit"
+        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-display font-bold py-3 rounded-full transition-colors"
+      >
+        Continue to Payment →
+      </button>
     </form>
   </div>
 </template>
@@ -57,6 +70,9 @@ import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useApi } from '@/composables/useApi'
 import { useRouter } from 'vue-router'
+
+const inputClass =
+  'px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition'
 
 const ordersStore = useOrdersStore()
 const cartStore = useCartStore()
@@ -120,65 +136,3 @@ const handleCheckout = async () => {
   router.push(`/orders/${order.id}/payment`)
 }
 </script>
-
-<style scoped>
-.preparing {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 2rem 0;
-  color: #6b7280;
-  font-size: 1.1rem;
-}
-
-.spinner {
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 3px solid #e5e7eb;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.checkout-page {
-  padding: 2rem;
-  max-width: 600px;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-input,
-select {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-}
-
-.submit-btn {
-  padding: 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-</style>

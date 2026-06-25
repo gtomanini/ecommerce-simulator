@@ -1,59 +1,68 @@
 <template>
-  <div class="register-page">
-    <h1>Create Account</h1>
-    <form @submit.prevent="handleRegister">
-      <div class="form-group">
-        <label for="name">Full Name</label>
+  <div>
+    <h1 class="font-display font-bold text-2xl text-gray-800 text-center mb-6">Join the simulation</h1>
+
+    <form @submit.prevent="handleRegister" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1.5">
+        <label for="name" class="font-semibold text-gray-700 text-sm">Full Name</label>
         <input
           id="name"
           v-model="form.name"
           type="text"
           placeholder="John Doe"
           required
+          class="px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
         />
       </div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
+      <div class="flex flex-col gap-1.5">
+        <label for="email" class="font-semibold text-gray-700 text-sm">Email</label>
         <input
           id="email"
           v-model="form.email"
           type="email"
           placeholder="your@email.com"
           required
+          class="px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
         />
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
+      <div class="flex flex-col gap-1.5">
+        <label for="password" class="font-semibold text-gray-700 text-sm">Password</label>
         <input
           id="password"
           v-model="form.password"
           type="password"
           placeholder="••••••••"
           required
+          class="px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
         />
       </div>
 
-      <div class="form-group">
-        <label for="password_confirmation">Confirm Password</label>
+      <div class="flex flex-col gap-1.5">
+        <label for="password_confirmation" class="font-semibold text-gray-700 text-sm">Confirm Password</label>
         <input
           id="password_confirmation"
           v-model="form.password_confirmation"
           type="password"
           placeholder="••••••••"
           required
+          class="px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
         />
       </div>
 
-      <button type="submit" :disabled="isLoading" class="submit-btn">
-        <span v-if="isLoading" class="loading"></span>
+      <button
+        type="submit"
+        :disabled="isLoading"
+        class="mt-1 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-display font-semibold rounded-lg transition-colors"
+      >
         {{ isLoading ? 'Creating Account...' : 'Create Account' }}
       </button>
     </form>
 
-    <p class="login-link">
-      Already have an account? <router-link to="/auth/login">Login here</router-link>
+    <p class="text-center text-sm text-gray-500 mt-5">
+      Already have an account?
+      <router-link to="/auth/login" class="text-orange-500 font-semibold hover:underline">Login here</router-link>
     </p>
   </div>
 </template>
@@ -87,78 +96,3 @@ const handleRegister = async () => {
   }
 }
 </script>
-
-<style scoped>
-.register-page h1 {
-  font-size: 1.875rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  color: #1f2937;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-label {
-  font-weight: 500;
-  color: #374151;
-}
-
-input {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.submit-btn {
-  padding: 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.submit-btn:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.login-link {
-  text-align: center;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.login-link a {
-  color: #3b82f6;
-  font-weight: 500;
-}
-</style>

@@ -1,58 +1,67 @@
 <template>
   <!-- Celebration overlay shown right after a successful payment -->
-  <div v-if="celebrating" class="celebration" @click="goToOrder">
-    <div class="celebration-card" @click.stop>
-      <div class="party">🎉</div>
-      <h2>Purchase complete!</h2>
-      <p class="dopamine">
-        You just felt <strong>R$ {{ paidTotal }}</strong> of pure dopamine…
+  <div
+    v-if="celebrating"
+    class="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
+    @click="goToOrder"
+  >
+    <div class="pop-in bg-white rounded-2xl p-10 max-w-sm w-full text-center shadow-2xl" @click.stop>
+      <div class="wiggle text-6xl leading-none">🎉</div>
+      <h2 class="font-display font-bold text-2xl text-gray-800 mt-3">Purchase complete!</h2>
+      <p class="text-gray-500 mt-2">
+        You just felt <strong class="text-gray-700">${{ paidTotal }}</strong> of pure dopamine…
       </p>
-      <p class="spent">…and paid <strong>R$ 0,00</strong> 😎</p>
-      <div class="celebration-actions">
-        <button class="submit-btn" @click="goToOrder">View my order</button>
-        <button class="ghost-btn" @click="keepShopping">Keep shopping</button>
+      <p class="text-green-600 text-lg mt-1">…and paid <strong>$0.00</strong> 😎</p>
+      <div class="flex flex-col gap-2 mt-6">
+        <button
+          class="bg-orange-500 hover:bg-orange-600 text-white font-display font-bold py-3 rounded-full transition-colors"
+          @click="goToOrder"
+        >
+          View my order
+        </button>
+        <button class="text-orange-500 font-semibold py-2 hover:underline" @click="keepShopping">Keep shopping</button>
       </div>
     </div>
   </div>
 
-  <div class="payment-page">
-    <h1>Payment</h1>
+  <div class="max-w-xl mx-auto">
+    <h1 class="font-display font-bold text-3xl text-gray-800 mb-5">Pretend to Pay 💳</h1>
 
-    <div v-if="order" class="order-summary">
-      <div class="summary-row">
+    <div v-if="order" class="bg-white rounded-2xl shadow-sm p-5 mb-5">
+      <div class="flex justify-between text-gray-500 py-1">
         <span>Order</span>
-        <strong>{{ order.order_number }}</strong>
+        <strong class="text-gray-700">{{ order.order_number }}</strong>
       </div>
-      <div class="summary-row total">
-        <span>Total to pay</span>
-        <strong>R$ {{ formatPrice(order.total) }}</strong>
+      <div class="flex justify-between items-baseline border-t border-gray-100 mt-1 pt-3">
+        <span class="font-display font-bold text-gray-800">Total to "pay"</span>
+        <strong class="font-display font-bold text-xl text-orange-500">${{ formatPrice(order.total) }}</strong>
       </div>
     </div>
 
-    <form @submit.prevent="handlePay">
-      <div class="form-group">
-        <label>Payment Method</label>
-        <div class="methods">
+    <form @submit.prevent="handlePay" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <div>
+        <label class="font-semibold text-gray-700 text-sm">Payment Method</label>
+        <div class="grid grid-cols-3 gap-3 mt-2">
           <label
             v-for="m in methods"
             :key="m.value"
-            class="method-option"
-            :class="{ active: form.method === m.value }"
+            class="flex flex-col items-center gap-1 py-3 rounded-xl border-2 cursor-pointer transition-colors"
+            :class="form.method === m.value ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'"
           >
-            <input type="radio" :value="m.value" v-model="form.method" />
-            <span class="method-icon">{{ m.icon }}</span>
-            <span>{{ m.label }}</span>
+            <input type="radio" :value="m.value" v-model="form.method" class="hidden" />
+            <span class="text-2xl">{{ m.icon }}</span>
+            <span class="text-sm font-semibold text-gray-700">{{ m.label }}</span>
           </label>
         </div>
       </div>
 
       <template v-if="isCard">
-        <div class="form-group">
-          <label>Cardholder Name</label>
-          <input v-model="form.card_holder" type="text" required />
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Cardholder Name</label>
+          <input v-model="form.card_holder" type="text" required :class="inputClass" />
         </div>
-        <div class="form-group">
-          <label>Card Number</label>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Card Number</label>
           <input
             :value="form.card_number"
             @input="onCardNumberInput"
@@ -61,11 +70,12 @@
             maxlength="19"
             placeholder="1234 5678 9012 3456"
             required
+            :class="inputClass"
           />
         </div>
-        <div class="card-row">
-          <div class="form-group">
-            <label>Expiry (MM/YY)</label>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="font-semibold text-gray-700 text-sm">Expiry (MM/YY)</label>
             <input
               :value="form.card_expiry"
               @input="onExpiryInput"
@@ -74,10 +84,11 @@
               placeholder="MM/YY"
               maxlength="5"
               required
+              :class="inputClass"
             />
           </div>
-          <div class="form-group">
-            <label>CVV</label>
+          <div class="flex flex-col gap-1.5">
+            <label class="font-semibold text-gray-700 text-sm">CVV</label>
             <input
               :value="form.card_cvv"
               @input="onCvvInput"
@@ -86,18 +97,23 @@
               maxlength="4"
               placeholder="123"
               required
+              :class="inputClass"
             />
           </div>
         </div>
       </template>
 
-      <div v-else-if="form.method === 'pix'" class="pix-box">
-        <div class="pix-qr">▦</div>
-        <p>Scan the QR code or copy the Pix code to pay. This is a simulation — just confirm to complete.</p>
+      <div v-else-if="form.method === 'pix'" class="text-center p-6 border border-dashed border-gray-300 rounded-xl text-gray-500">
+        <div class="text-6xl leading-none">▦</div>
+        <p class="mt-2 text-sm">Scan the QR code or copy the Pix code. It's a simulation — just confirm to complete.</p>
       </div>
 
-      <button type="submit" class="submit-btn" :disabled="ordersStore.loading">
-        {{ ordersStore.loading ? 'Processing...' : `Pay R$ ${order ? formatPrice(order.total) : ''}` }}
+      <button
+        type="submit"
+        :disabled="ordersStore.loading"
+        class="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-display font-bold py-3 rounded-full transition-colors"
+      >
+        {{ ordersStore.loading ? 'Processing...' : `Pay $${order ? formatPrice(order.total) : ''} (not really)` }}
       </button>
     </form>
   </div>
@@ -109,6 +125,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders'
 import { useCelebration } from '@/composables/useCelebration'
 
+const inputClass =
+  'px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition'
+
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
@@ -119,8 +138,8 @@ const celebrating = ref(false)
 const paidTotal = computed(() => (order.value ? formatPrice(order.value.total) : '0.00'))
 
 const methods = [
-  { value: 'credit_card', label: 'Credit Card', icon: '💳' },
-  { value: 'debit_card', label: 'Debit Card', icon: '🏦' },
+  { value: 'credit_card', label: 'Credit', icon: '💳' },
+  { value: 'debit_card', label: 'Debit', icon: '🏦' },
   { value: 'pix', label: 'Pix', icon: '⚡' },
 ]
 
@@ -184,204 +203,19 @@ const keepShopping = () => router.push('/')
 </script>
 
 <style scoped>
-.payment-page {
-  padding: 2rem;
-  max-width: 600px;
-}
-
-.order-summary {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.35rem 0;
-  color: #6b7280;
-}
-
-.summary-row.total {
-  border-top: 1px solid #e5e7eb;
-  margin-top: 0.35rem;
-  padding-top: 0.75rem;
-  font-size: 1.1rem;
-  color: #111827;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-input[type='text'] {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-}
-
-.methods {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.method-option {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 400;
-}
-
-.method-option.active {
-  border-color: #3b82f6;
-  background: #eff6ff;
-}
-
-.method-option input {
-  display: none;
-}
-
-.method-icon {
-  font-size: 1.5rem;
-}
-
-.card-row {
-  display: flex;
-  gap: 1rem;
-}
-
-.card-row .form-group {
-  flex: 1;
-}
-
-.pix-box {
-  text-align: center;
-  padding: 1.5rem;
-  border: 1px dashed #d1d5db;
-  border-radius: 0.5rem;
-  color: #6b7280;
-}
-
-.pix-qr {
-  font-size: 4rem;
-  line-height: 1;
-}
-
-.submit-btn {
-  padding: 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* --- Celebration overlay --- */
-.celebration {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(17, 24, 39, 0.55);
-  backdrop-filter: blur(2px);
-}
-
-.celebration-card {
-  background: white;
-  border-radius: 1rem;
-  padding: 2.5rem 2rem;
-  max-width: 420px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+.pop-in {
   animation: pop-in 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
-
-@keyframes pop-in {
-  0% {
-    transform: scale(0.7);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.party {
-  font-size: 3.5rem;
-  line-height: 1;
+.wiggle {
   animation: wiggle 0.8s ease-in-out;
 }
-
+@keyframes pop-in {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 @keyframes wiggle {
   0%, 100% { transform: rotate(0); }
   25% { transform: rotate(-12deg) scale(1.1); }
   75% { transform: rotate(12deg) scale(1.1); }
-}
-
-.celebration-card h2 {
-  margin: 0.75rem 0 0.5rem;
-  font-size: 1.6rem;
-  color: #111827;
-}
-
-.dopamine {
-  color: #4b5563;
-  margin: 0.25rem 0;
-}
-
-.spent {
-  color: #16a34a;
-  font-size: 1.15rem;
-  margin: 0.25rem 0 1.5rem;
-}
-
-.celebration-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.ghost-btn {
-  padding: 0.6rem;
-  background: transparent;
-  color: #3b82f6;
-  border: none;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.ghost-btn:hover {
-  text-decoration: underline;
 }
 </style>

@@ -1,41 +1,49 @@
 <template>
-  <div class="profile-page">
-    <h1>My Profile</h1>
-    <p class="subtitle">
-      These details are used to pre-fill your checkout form.
-    </p>
+  <div class="max-w-2xl mx-auto">
+    <h1 class="font-display font-bold text-3xl text-gray-800">Your (Fake) Identity</h1>
+    <p class="text-gray-500 mt-1 mb-5">These details pre-fill your checkout — so you can regret faster.</p>
 
-    <form @submit.prevent="handleSave">
-      <div class="form-group">
-        <label>Name</label>
-        <input v-model="form.name" type="text" required />
+    <form @submit.prevent="handleSave" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Name</label>
+          <input v-model="form.name" type="text" required :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Email</label>
+          <input :value="authStore.user?.email" type="email" disabled :class="[inputClass, 'bg-gray-100 text-gray-500']" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Phone</label>
+          <input v-model="form.phone" type="tel" :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">Zip Code</label>
+          <input v-model="form.zip" type="text" :class="inputClass" />
+        </div>
       </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input :value="authStore.user?.email" type="email" disabled />
-        <small>Email cannot be changed.</small>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="font-semibold text-gray-700 text-sm">Address</label>
+        <input v-model="form.address" type="text" :class="inputClass" />
       </div>
-      <div class="form-group">
-        <label>Phone</label>
-        <input v-model="form.phone" type="tel" />
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">City</label>
+          <input v-model="form.city" type="text" :class="inputClass" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-semibold text-gray-700 text-sm">State</label>
+          <input v-model="form.state" type="text" :class="inputClass" />
+        </div>
       </div>
-      <div class="form-group">
-        <label>Address</label>
-        <input v-model="form.address" type="text" />
-      </div>
-      <div class="form-group">
-        <label>City</label>
-        <input v-model="form.city" type="text" />
-      </div>
-      <div class="form-group">
-        <label>State</label>
-        <input v-model="form.state" type="text" />
-      </div>
-      <div class="form-group">
-        <label>Zip Code</label>
-        <input v-model="form.zip" type="text" />
-      </div>
-      <button type="submit" class="submit-btn" :disabled="authStore.loading">
+
+      <button
+        type="submit"
+        :disabled="authStore.loading"
+        class="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-display font-bold py-3 rounded-full transition-colors"
+      >
         {{ authStore.loading ? 'Saving...' : 'Save Profile' }}
       </button>
     </form>
@@ -45,6 +53,9 @@
 <script setup>
 import { reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+
+const inputClass =
+  'px-3 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition'
 
 const authStore = useAuthStore()
 
@@ -77,62 +88,3 @@ const handleSave = async () => {
   await authStore.updateProfile({ ...form })
 }
 </script>
-
-<style scoped>
-.profile-page {
-  padding: 2rem;
-  max-width: 600px;
-}
-
-.subtitle {
-  color: #6b7280;
-  margin-bottom: 1.5rem;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-small {
-  color: #9ca3af;
-  margin-top: 0.25rem;
-}
-
-input {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-}
-
-input:disabled {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.submit-btn {
-  padding: 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-</style>

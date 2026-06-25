@@ -1,26 +1,13 @@
 <template>
-  <div class="auth-layout">
-    <div class="auth-container">
+  <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-orange-500 to-orange-600">
+    <router-link to="/" class="text-center mb-6 text-white leading-none">
+      <div class="font-display font-bold text-3xl">ShopSim</div>
+      <div class="text-[11px] font-bold tracking-widest text-orange-100 uppercase mt-1">
+        Fake Shopping. Real Dopamine.
+      </div>
+    </router-link>
+    <div class="w-full max-w-md bg-white rounded-2xl p-8 shadow-2xl">
       <slot />
     </div>
   </div>
 </template>
-
-<style scoped>
-.auth-layout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.auth-container {
-  width: 100%;
-  max-width: 400px;
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-</style>
