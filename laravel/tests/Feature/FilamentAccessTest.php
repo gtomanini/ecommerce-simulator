@@ -52,4 +52,13 @@ class FilamentAccessTest extends TestCase
         $this->actingAs($admin)->get('/admin/users')->assertSuccessful();
         $this->actingAs($admin)->get('/admin/users/create')->assertSuccessful();
     }
+
+    public function test_admin_can_open_product_edit_with_images(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $product = \App\Models\Product::factory()->create();
+
+        // The product edit page hosts the images relation manager.
+        $this->actingAs($admin)->get("/admin/products/{$product->id}/edit")->assertSuccessful();
+    }
 }
